@@ -4,7 +4,7 @@ export const Menu = ({setShowNEO, setShowPHA, showNEO, showComet, setShowComet})
     return (
         <>
             <button className="btn" onClick={() => document.getElementById('panel').showModal()}>Control Panel</button>
-            <dialog id="panel" className="modal">
+            <dialog id="panel" className="modal ">
                 <div className="modal-box">
                     <form method="dialog">
                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>

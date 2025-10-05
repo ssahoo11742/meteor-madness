@@ -33,7 +33,7 @@ const getVal = (obj, key) => {
 export const Search = ({ setLabeledBodies }) => {
   const [searchInput, setSearchInput] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [sortOption, setSortOption] = useState("name");
+  const [sortOption, setSortOption] = useState("size");
   const [sortOrder, setSortOrder] = useState("asc"); // NEW: asc/desc toggle
   const [filteredItems, setFilteredItems] = useState([]);
   const [analysisTarget, setAnalysisTarget] = useState(null);
