@@ -71,7 +71,7 @@ export const ImpactReportSection = ({ data }) => {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/impact_effects", {
+      const res = await fetch("https://meteor-madness-server-wtu3.onrender.com/impact_effects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

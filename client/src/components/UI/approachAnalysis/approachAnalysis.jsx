@@ -256,6 +256,13 @@ export default function ApproachAnalysis({ data }) {
         </Canvas>
 
         {/* Game Mode Panel - Bottom Left (only shows when active) */}
+              <div 
+          className="absolute bottom-4  p-4 rounded-lg flex flex-col items-center space-y-2 transition-all z-40"
+          style={{
+            width: gameMode ? '25%' : 'none',
+            maxWidth: gameMode ? '25%' : 'none',
+          }}
+        >
         {gameMode && (
           <GameMode
             orbitalElements={orbitalElements}
@@ -272,12 +279,13 @@ export default function ApproachAnalysis({ data }) {
             registerDeflectionCallback={setOnDeflectionCallback}
           />
         )}
+        </div>
 
         {/* Propagation Slider - Bottom (adjusted position when game mode is active) */}
         <div 
           className="absolute bottom-4 bg-gray-900 bg-opacity-80 p-4 rounded-lg flex flex-col items-center space-y-2 transition-all z-40"
           style={{
-            transform: gameMode ? 'translateY(600%)' : 'none',
+            transform: gameMode ? 'translateY(610%)' : 'none',
             width: gameMode ? '100%' : '100%',
             maxWidth: gameMode ? '25%' : '25%',
           }}

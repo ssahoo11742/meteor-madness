@@ -11,7 +11,7 @@ const LiveNEOSection = () => {
   });
 
   useEffect(() => {
-    fetch("http://localhost:8000/live_neo_data")
+    fetch("https://meteor-madness-server-wtu3.onrender.com/live_neo_data")
       .then((res) => res.json())
       .then(setNeos)
       .catch(console.error);

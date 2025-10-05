@@ -57,13 +57,13 @@ export const Sidebar = ({
     <>
       {/* Info Sidebar */}
       <div
-        className={`fixed top-0 right-0 w-[40rem] flex-shrink-0 h-full box-border bg-gray-900 bg-opacity-90 text-white shadow-lg transform transition-transform ${
+        className={`fixed top-0 right-0 w-[35rem] flex-shrink-0 h-full box-border bg-gray-900 bg-opacity-90 text-white shadow-lg transform transition-transform ${
           show === "Info" ? "translate-x-0" : "translate-x-full"
         }`}
           style={{
-    width: "40rem",
-    minWidth: "40rem",
-    maxWidth: "40rem",
+    width: "35rem",
+    minWidth: "35rem",
+    maxWidth: "35rem",
     flexShrink: 0,
   }}
       >
@@ -201,13 +201,13 @@ export const Sidebar = ({
 
       {/* Modify Sidebar */}
       <div
-        className={`fixed z-50 top-0 right-0 w-[40rem] flex-shrink-0 h-full box-border bg-gray-900 bg-opacity-95 text-white shadow-lg transform transition-transform ${
+        className={`fixed z-50 top-0 right-0 w-[35rem] flex-shrink-0 h-full box-border bg-gray-900 bg-opacity-95 text-white shadow-lg transform transition-transform ${
           show === "Modify" ? "translate-x-0" : "translate-x-full"
         }`}
           style={{
-    width: "40rem",
-    minWidth: "40rem",
-    maxWidth: "40rem",
+    width: "35rem",
+    minWidth: "35rem",
+    maxWidth: "35rem",
     flexShrink: 0,
   }}
       >
@@ -265,23 +265,21 @@ export const Sidebar = ({
             >
               Apply Δv
             </button>
-            <Tooltip text="Mitigation effectiveness score from 0-100. Higher scores indicate better deflection results">
-        <div className="w-full mt-4 p-3 bg-gray-700 rounded">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-300">Score</span>
-            <span className="text-sm font-bold text-white">
-              {manualEvaluation?.score || 0} / 100
-            </span>
-          </div>
+            <div className="w-full mt-4 p-3 bg-gray-700 rounded">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-300">Score</span>
+                <span className="text-sm font-bold text-white">
+                  {manualEvaluation?.score || 0} / 100
+                </span>
+              </div>
 
-          <div className="relative w-full h-8 bg-gray-600 rounded-full overflow-hidden border border-gray-500">
-            <div
-              className="h-full bg-red-500 rounded-full"
-              style={{ width: `${manualEvaluation?.score || 0}%` }}
-            />
-          </div>
-        </div>
-            </Tooltip>
+              <div className="relative w-full h-8 bg-gray-600 rounded-full overflow-hidden border border-gray-500">
+                <div
+                  className="h-full bg-red-500 rounded-full"
+                  style={{ width: `${manualEvaluation?.score || 0}%` }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Kinetic Deflector */}
@@ -334,13 +332,13 @@ export const Sidebar = ({
 
       {/* Impact Sidebar */}
       <div
-        className={`fixed top-0 right-0 w-[40rem] flex-shrink-0 h-full box-border bg-gray-900 bg-opacity-95 text-white shadow-lg transform transition-transform ${
+        className={`fixed top-0 right-0 w-[35rem] flex-shrink-0 h-full box-border bg-gray-900 bg-opacity-95 text-white shadow-lg transform transition-transform ${
           show === "Impact" ? "translate-x-0" : "translate-x-full"
         }`}
           style={{
-    width: "40rem",
-    minWidth: "40rem",
-    maxWidth: "40rem",
+    width: "35rem",
+    minWidth: "35rem",
+    maxWidth: "35rem",
     flexShrink: 0,
   }}
       >

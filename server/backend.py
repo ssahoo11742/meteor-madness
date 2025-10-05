@@ -13,13 +13,32 @@ import re
 import math
 import logging
 logging.basicConfig(level=logging.INFO)
-from nasawrapper import SyncNeoWs
 import rasterio
 from rasterio.mask import mask
 from shapely.geometry import Point
 import geopandas as gpd
 from shapely.ops import transform
 import pyproj
+import os
+import requests
+import gdown
+raster_path = "population.tif"
+import requests
+
+import requests
+
+file_id = "1qfU-QP9--UiYUvH8-MurAKGpMESQj4-l"
+destination = "population.tif"
+url = f"https://drive.google.com/uc?export=download&id={file_id}&confirm=t"
+
+url = f'https://drive.google.com/file/d/{file_id}/view?usp=sharing'
+output_path = "population.tif"
+
+gdown.download(url, output_path, quiet=False, fuzzy=True)
+print(f"File downloaded to: {output_path}")
+
+
+
 
 # Open raster
 raster = rasterio.open("population.tif")
@@ -33,6 +52,7 @@ from fastapi.middleware.cors import CORSMiddleware
 origins = [
     "http://localhost:3000",  # React dev server
     "http://127.0.0.1:3000",
+    "https://astrogaurd.netlify.app/"
 ]
 
 app.add_middleware(

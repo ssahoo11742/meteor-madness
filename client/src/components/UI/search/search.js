@@ -206,7 +206,7 @@ setFilteredItems(results);
                       const spk = raw.spkid;
                       if (!pdes) return;
                       try {
-                        const res = await fetch("http://127.0.0.1:8000/neo", {
+                        const res = await fetch("https://meteor-madness-server-wtu3.onrender.com/neo", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ pdes, spk }),

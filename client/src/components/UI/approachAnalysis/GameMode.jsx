@@ -77,8 +77,7 @@ export const GameMode = ({
   const [attempts, setAttempts] = useState(0);
   const [gameTime, setGameTime] = useState(0);
   const [maxTime, setMaxTime] = useState(300); // 300 days before approach
-  const [minThreshold, setMinThreshold] = useState(1000000); // km minimum safe distance
-  const [maxThreshold, setMaxThreshold] = useState(5000000); // km maximum safe distance
+
   const [lastMissDistance, setLastMissDistance] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState({ title: '', message: '', isSuccess: false });
@@ -97,7 +96,8 @@ export const GameMode = ({
       return 0;
     }
   };
-
+  const [minThreshold, setMinThreshold] = useState(Math.round(getCurrentMissDistance() * 1.5),2); // km minimum safe distance
+  const [maxThreshold, setMaxThreshold] = useState(Math.round(getCurrentMissDistance() * 2),2); // km maximum safe distance
   // Track deflection attempts
   const onDeflectionAttempt = () => {
     if (!gameActive) return;
@@ -129,6 +129,8 @@ export const GameMode = ({
 
   // Start/restart game
   const startGame = () => {
+    setMinThreshold(getCurrentMissDistance() * 1.5);
+    setMaxThreshold(getCurrentMissDistance() * 2);
     setGameActive(true);
     setGamePaused(false);
     setScore(0);
