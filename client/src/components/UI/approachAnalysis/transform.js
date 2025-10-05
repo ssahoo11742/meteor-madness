@@ -257,6 +257,85 @@ export function simulateKineticImpact(keplerElements, deltaVMag, direction = "al
 
 const G = 6.67430e-20; // km^3 / kg / s^2
 
+
+/**
+ * Simulate a laser ablation deflection effect.
+ * The laser continuously imparts small thrust over time by vaporizing surface material.
+ *
+ * @param {Object} keplerElements - asteroid orbital elements {a,e,i,om,w,ma}
+ * @param {number} power - laser power in megawatts (MW)
+ * @param {number} efficiency - conversion efficiency (0–1)
+ * @param {number} asteroidMass - asteroid mass (kg)
+ * @param {number} durationSec - duration of ablation (seconds)
+ * @param {number} dt - timestep (seconds)
+ * @param {string} direction - "alongVelocity" | "radial" | "normal"
+ * @returns {{currentElements: Object, deltaVmag: number}}
+ */
+export function laserAblation(
+  keplerElements,
+  power,
+  efficiency,
+  asteroidMass,
+  durationSec,
+  dt = 3600,
+  direction = "alongVelocity"
+) {
+  console.log("Simulating laser ablation:", { power, efficiency, asteroidMass, durationSec, dt, direction });
+
+  let currentElements = { ...keplerElements };
+  const steps = Math.ceil(durationSec / dt);
+  console.log(steps)
+  let totalDeltaV = [0, 0, 0];
+
+  // Convert MW to W
+  const powerWatts = power * 1e6;
+
+  for (let i = 0; i < steps; i++) {
+    const { r_vec, v_vec } = keplerianToCartesian(
+      currentElements.a,
+      currentElements.e,
+      currentElements.i,
+      currentElements.om,
+      currentElements.w,
+      currentElements.ma
+    );
+
+    // Effective thrust = (efficiency * power) / exhaustVelocity
+    // Typical exhaust velocity from ablation vapor ~ 3000 m/s = 3 km/s
+    const exhaustVel = 3; // km/s
+    const thrust = (efficiency * powerWatts) / (exhaustVel * 1e3); // Newtons
+    const aMag = thrust / (asteroidMass * 1e3); // km/s²
+
+    let a_vec;
+    switch (direction) {
+      case "alongVelocity":
+        a_vec = scalarMultiply(v_vec, aMag / norm(v_vec));
+        break;
+      case "radial":
+        a_vec = scalarMultiply(r_vec, aMag / norm(r_vec));
+        break;
+      case "normal":
+        const h_vec = cross(r_vec, v_vec);
+        a_vec = scalarMultiply(h_vec, aMag / norm(h_vec));
+        break;
+      default:
+        a_vec = scalarMultiply(v_vec, aMag / norm(v_vec));
+    }
+
+    // Δv = a * dt
+    const deltaV = scalarMultiply(a_vec, dt);
+    const newV = addVec(v_vec, deltaV);
+    totalDeltaV = addVec(totalDeltaV, deltaV);
+
+    // Update orbital elements
+    currentElements = cartesianToKeplerian(r_vec, newV);
+  }
+
+  const deltaVmag = norm(totalDeltaV);
+  return { currentElements, deltaVmag };
+}
+
+
 /**
  * Simulate a gravity tractor effect over a period of time
  * @param {Object} keplerElements - asteroid orbital elements {a,e,i,om,w,ma}
@@ -271,7 +350,8 @@ export function gravityTractor(keplerElements, m_sc, r_sc, durationSec, dt = 360
     console.log("Simulating gravity tractor:", {m_sc, r_sc, durationSec, dt, direction, keplerElements});
     let currentElements = { ...keplerElements };
     const steps = Math.ceil(durationSec / dt);
-    console.log(steps)
+    let totalDeltaV = [0, 0, 0]; 
+
     for (let i = 0; i < steps; i++) {
         const { r_vec, v_vec } = keplerianToCartesian(
             currentElements.a,
@@ -305,10 +385,12 @@ export function gravityTractor(keplerElements, m_sc, r_sc, durationSec, dt = 360
         // Update velocity
         const deltaV = scalarMultiply(a_vec, dt); // Δv = a * dt
         const newV = addVec(v_vec, deltaV);
+        totalDeltaV = addVec(totalDeltaV, deltaV);
 
         // Update orbital elements
         currentElements = cartesianToKeplerian(r_vec, newV);
     }
+    const deltaVmag = norm(totalDeltaV);
 
-    return currentElements;
+    return {currentElements, deltaVmag};
 }

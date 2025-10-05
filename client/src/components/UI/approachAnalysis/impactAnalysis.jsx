@@ -5,6 +5,8 @@ import L from "leaflet";
 import { IntensityMap } from "./IntensityMap";
 import { TsunamiOverlay } from "./TsunamiMap";
 import { FaultLinesOverlay } from "./fault";
+import { evaluateImpact, Tooltip } from "./utils";
+
 // Fix marker icon issue in Leaflet + React
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -20,7 +22,7 @@ const generateImpactSummary = (impactData) => {
   if (!impactData) return [];
   const summary = [];
 
-  const energyMt = impactData.Energy?.entry_energy_mt;
+  const energyMt = impactData.Energy?.entry_energy_mt || impactData.Energy?.entry_energy_J / 4.184e+15;
   if (energyMt) summary.push(`💥 Estimated impact energy: ${energyMt.toLocaleString()} MT TNT equivalent.`);
 
   const entry = impactData.Atmospheric_Entry || {};
@@ -40,6 +42,7 @@ const generateImpactSummary = (impactData) => {
 };
 
 export const ImpactReportSection = ({ data }) => {
+  const [impactEvaluation, setImpactEvaluation] = useState(null);
   const [markerPosition, setMarkerPosition] = useState(null);
   const [impactEffects, setImpactEffects] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -48,7 +51,7 @@ export const ImpactReportSection = ({ data }) => {
   const [showPopulation, setShowPopulation] = useState(false);
   const [showFaultLines, setShowFaultLines] = useState(false);
 
-  const calculateImpactEffects = async () => {
+  const calculateImpactEffects = async (impactData) => {
     setLoading(true);
     if (!markerPosition) return;
     
@@ -81,6 +84,7 @@ export const ImpactReportSection = ({ data }) => {
         }),
       });
       const json = await res.json();
+      setImpactEvaluation(evaluateImpact(impactData.Energy?.entry_energy_mt || impactData.Energy?.entry_energy_J / 4.184e+15, json?.population || 0))
       setImpactEffects(json);
       setSlideIndex(0);
     } catch (err) {
@@ -176,7 +180,9 @@ export const ImpactReportSection = ({ data }) => {
       {/* Map */}
       <div className="mt-6">
         
-        <h3 className="text-xl font-semibold mb-2 text-white">Select Impact Location</h3>
+        <Tooltip text="Click anywhere on the map to select where you want to simulate the asteroid impact">
+          <h3 className="text-xl font-semibold mb-2 text-white">Select Impact Location</h3>
+        </Tooltip>
         <MapContainer center={[20, 0]} zoom={2} style={{ height: "400px", width: "100%" }} className="rounded-xl overflow-hidden shadow-sm">
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -207,43 +213,57 @@ export const ImpactReportSection = ({ data }) => {
         </MapContainer>
         <div className="flex items-center gap-4 mb-3 text-white">
           <label>
-            <input
-              type="checkbox"
-              checked={showPopulation}
-              onChange={(e) => setShowPopulation(e.target.checked)}
-              className="mr-2"
-            />
-            Population Density
+            <Tooltip text="Show population density heatmap to see how many people live in different areas">
+              <input
+                type="checkbox"
+                checked={showPopulation}
+                onChange={(e) => setShowPopulation(e.target.checked)}
+                className="mr-2"
+              />
+              Population Density
+            </Tooltip>
           </label>
           <label>
-            <input
-              type="checkbox"
-              checked={showFaultLines}
-              onChange={(e) => setShowFaultLines(e.target.checked)}
-              className="mr-2"
-            />
-            Fault Lines
+            <Tooltip text="Display tectonic fault lines - areas where earthquakes are more likely to occur">
+              <input
+                type="checkbox"
+                checked={showFaultLines}
+                onChange={(e) => setShowFaultLines(e.target.checked)}
+                className="mr-2"
+              />
+              Fault Lines
+            </Tooltip>
           </label>
         </div>
+
+        <Tooltip text="Overall disaster severity score from 0-100 based on impact energy and affected population. Higher scores indicate more catastrophic events">
+          <div>
+            Disaster Score: {impactEvaluation?.score || 0} / 100
+          </div>
+        </Tooltip>
 
         {markerPosition ? (
           <p className="mt-2 text-white">Selected Coordinates: Lat {markerPosition[0].toFixed(4)}, Lng {markerPosition[1].toFixed(4)}</p>
         ) : (
           <p className="mt-2 text-gray-400 italic">Please select a location to calculate impact effects</p>
         )}
-        <button
-          onClick={()=> {calculateImpactEffects(); setCenter(markerPosition);}}
-          disabled={loading || !markerPosition}
-          className="mt-4 px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50"
-        >
-          {loading ? "Calculating..." : "Calculate Impact Effects"}
-        </button>
+        <Tooltip text="Click to run detailed simulations of crater size, thermal effects, air blast, seismic waves, and potential casualties at the selected location">
+          <button
+            onClick={()=> {calculateImpactEffects(impactData); setCenter(markerPosition); }}
+            disabled={loading || !markerPosition}
+            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50"
+          >
+            {loading ? "Calculating..." : "Calculate Impact Effects"}
+          </button>
+        </Tooltip>
       </div>
 
       {/* Summary */}
       {summaryList.length > 0 && (
         <div className="mb-6 p-4 border rounded-xl shadow-sm bg-gray-800 text-white mt-4">
-          <h3 className="text-xl font-semibold mb-2">📝 Summary</h3>
+          <Tooltip text="Quick overview of the most important impact characteristics">
+            <h3 className="text-xl font-semibold mb-2">📝 Summary</h3>
+          </Tooltip>
           <ul className="list-disc list-inside space-y-1 text-sm">
             {summaryList.map((line, idx) => <li key={idx}>{line}</li>)}
           </ul>
@@ -253,30 +273,100 @@ export const ImpactReportSection = ({ data }) => {
 {/* Details Slideshow */}
 {impactData && sectionKeys.length > 0 && (
   <div className="mb-6 mt-4">
-    <h3 className="text-xl font-semibold mb-2 text-white">📊 Details</h3>
+    <Tooltip text="Detailed breakdown of impact effects organized by category. Use arrows to navigate through different aspects">
+      <h3 className="text-xl font-semibold mb-2 text-white">📊 Details</h3>
+    </Tooltip>
 
     {/* Card */}
     <div className="max-w-2xl mx-auto p-4 border rounded-xl shadow-sm bg-gray-800 text-white">
       <h4 className="text-lg font-semibold mb-2">{currentSectionKey}</h4>
       {currentSectionValues && Object.keys(currentSectionValues).length > 0 ? (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          {Object.entries(currentSectionValues).map(([label, value]) => (
-            <li key={label} className="flex justify-between">
-              <span className="font-medium">{label}:</span>
-              <span>
-                {value !== null && value !== undefined
-                  ? typeof value === "number"
-                    ? value.toLocaleString()
-                    : value
-                  : "Not Available"}
-              </span>
-            </li>
-          ))}
+        <ul className="space-y-2 text-sm">
+          {Object.entries(currentSectionValues).map(([label, value]) => {
+            // Tooltip text based on label
+            let tooltipText = "";
+            switch(label) {
+              case "Impact Energy (MT TNT)":
+                tooltipText = "Total kinetic energy released upon impact, measured in megatons of TNT equivalent";
+                break;
+              case "Energy Lost in Atmosphere (MT TNT)":
+                tooltipText = "Energy dissipated as the asteroid travels through Earth's atmosphere before impact";
+                break;
+              case "Impact Velocity (km/s)":
+                tooltipText = "Speed at which fragments hit the ground after atmospheric deceleration";
+                break;
+              case "Breakup Altitude (km)":
+                tooltipText = "Height above ground where the asteroid begins to fragment due to atmospheric pressure";
+                break;
+              case "Causalties/Deaths":
+                tooltipText = "Estimated number of people who would be killed or severely injured by the impact";
+                break;
+              case "Ocean Crater Diameter (km)":
+                tooltipText = "Initial size of the crater formed in the ocean floor";
+                break;
+              case "Final Crater Diameter (km)":
+              case "Final Crater Diameter (m)":
+                tooltipText = "Size of the permanent crater after collapse and erosion processes";
+                break;
+              case "Final Crater Depth (m)":
+                tooltipText = "Depth of the crater from rim to floor";
+                break;
+              case "Breccia Thickness (m)":
+                tooltipText = "Depth of broken, jumbled rock fragments in the crater floor";
+                break;
+              case "Fireball Radius (km)":
+                tooltipText = "Distance from ground zero where thermal radiation causes severe burns";
+                break;
+              case "Duration of Irradiation (min)":
+                tooltipText = "How long the fireball emits dangerous levels of thermal radiation";
+                break;
+              case "Peak Pressure (psi)":
+                tooltipText = "Maximum overpressure from the shockwave. 5+ psi destroys most buildings";
+                break;
+              case "Max Wind Velocity (m/s)":
+                tooltipText = "Peak wind speed behind the shockwave front";
+                break;
+              case "Sound Intensity (dB)":
+                tooltipText = "Loudness of the blast. 130+ dB causes immediate hearing damage";
+                break;
+              case "Arrival Time (min)":
+              case "Arrival Time (s)":
+                tooltipText = "Time it takes for the effect to reach the impact location";
+                break;
+              case "Wave Height (m)":
+                tooltipText = "Maximum height of tsunami waves generated by ocean impact";
+                break;
+              case "Thickness":
+                tooltipText = "Thickness of ejected material deposited at this distance";
+                break;
+              case "Richter Scale":
+                tooltipText = "Earthquake magnitude on the Richter scale. Each whole number is 10x more powerful";
+                break;
+              default:
+                tooltipText = label;
+            }
+
+            return (
+              <li key={label}>
+                <Tooltip text={tooltipText}>
+                  <span className="font-medium">{label}:</span>
+                </Tooltip>{" "}
+                <span>
+                  {value !== null && value !== undefined
+                    ? typeof value === "number"
+                      ? value.toLocaleString()
+                      : value
+                    : "Not Available"}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="text-gray-400 italic">No data available</p>
       )}
     </div>
+
 
     {/* Navigation arrows under the card */}
     <div className="flex justify-center items-center mt-4 space-x-6">

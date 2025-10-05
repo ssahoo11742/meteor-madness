@@ -4,6 +4,9 @@ import * as THREE from "three";
 import { scalarMultiply, norm, cross, addVec, keplerianToCartesian } from "./transform";
 import { useState } from "react";
 import { gravityTractor } from "./transform";
+import { evaluateMitigation } from "./utils"; // Adjust path as needed
+import { Tooltip } from "./utils";
+
 
 export const GravityTractorSection = ({
   orbitalElements,
@@ -16,6 +19,9 @@ export const GravityTractorSection = ({
   setGtDuration,
   gtDirection,
   setGtDirection,
+  setGravityEvaluation,
+  gravityEvaluation,
+  closestApproachData
 }) => {
   const [showCloseUp, setShowCloseUp] = useState(true);
 
@@ -67,70 +73,98 @@ export const GravityTractorSection = ({
 
       <div className="space-y-3">
         {/* Mass */}
-        <div className="flex flex-col">
-          <label className="text-gray-400 text-sm mb-1">Spacecraft Mass (kg)</label>
-          <input
-            type="number"
-            className="w-full p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={gtMass}
-            onChange={(e) => setGtMass(parseFloat(e.target.value) || 0)}
-          />
-        </div>
+<div className="flex flex-col">
+  <label className="text-gray-400 text-sm mb-1">Spacecraft Mass (kg)</label>
+  <Tooltip text="The mass of your spacecraft in kilograms. Higher mass increases gravitational pull on the asteroid.">
+    <input
+      type="number"
+      className="w-full p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+      value={gtMass}
+      onChange={(e) => setGtMass(parseFloat(e.target.value) || 0)}
+    />
+  </Tooltip>
+</div>
 
-        {/* Distance */}
-        <div className="flex flex-col">
-          <label className="text-gray-400 text-sm mb-1">Distance from Asteroid (km)</label>
-          <input
-            type="number"
-            className="w-full p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={gtDistance}
-            onChange={(e) => setGtDistance(parseFloat(e.target.value) || 1)}
-          />
-        </div>
+<div className="flex flex-col">
+  <label className="text-gray-400 text-sm mb-1">Distance from Asteroid (km)</label>
+  <Tooltip text="Distance from asteroid in kilometers. Closer distances increase gravitational effect but are riskier.">
+    <input
+      type="number"
+      className="w-full p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+      value={gtDistance}
+      onChange={(e) => setGtDistance(parseFloat(e.target.value) || 1)}
+    />
+  </Tooltip>
+</div>
 
-        {/* Duration */}
-        <div className="flex flex-col">
-          <label className="text-gray-400 text-sm mb-1">Duration (days)</label>
-          <input
-            type="number"
-            className="w-full p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={gtDuration}
-            onChange={(e) => setGtDuration(parseFloat(e.target.value) || 1)}
-          />
-        </div>
+<div className="flex flex-col">
+  <label className="text-gray-400 text-sm mb-1">Duration (days)</label>
+  <Tooltip text="Duration in days that the spacecraft applies its gravitational pull. Longer durations increase effect.">
+    <input
+      type="number"
+      className="w-full p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+      value={gtDuration}
+      onChange={(e) => setGtDuration(parseFloat(e.target.value) || 1)}
+    />
+  </Tooltip>
+</div>
 
-        {/* Direction */}
-        <div className="flex flex-col">
-          <label className="text-gray-400 text-sm mb-1">Direction</label>
-          <select
-            className="w-full p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={gtDirection}
-            onChange={(e) => setGtDirection(e.target.value)}
-          >
-            <option value="alongVelocity">Along Velocity</option>
-            <option value="radial">Radial</option>
-            <option value="normal">Normal (perpendicular)</option>
-          </select>
-        </div>
+<div className="flex flex-col">
+  <label className="text-gray-400 text-sm mb-1">Direction</label>
+  <Tooltip text="Direction relative to the asteroid's orbit. Along Velocity = along motion, Radial = toward/away from the Sun, Normal = perpendicular to orbit plane.">
+    <select
+      className="w-full p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+      value={gtDirection}
+      onChange={(e) => setGtDirection(e.target.value)}
+    >
+      <option value="alongVelocity">Along Velocity</option>
+      <option value="radial">Radial</option>
+      <option value="normal">Normal (perpendicular)</option>
+    </select>
+  </Tooltip>
+</div>
 
-        {/* Apply button */}
-        <button
-          className="w-full bg-green-600 hover:bg-green-700 rounded p-2 font-semibold shadow mt-2"
-          onClick={() => {
-            const durationSec = gtDuration * 24 * 3600;
-            const newElements = gravityTractor(
-              orbitalElements,
-              gtMass,
-              gtDistance,
-              durationSec,
-              86400, // dt = 1 day for safety
-              gtDirection
-            );
-            applyNewElements(newElements);
-          }}
-        >
-          Apply Gravity Tractor
-        </button>
+  <button
+    className="w-full bg-green-600 hover:bg-green-700 rounded p-2 font-semibold shadow mt-2"
+    onClick={() => {
+      const durationSec = gtDuration * 24 * 3600;
+      const gravity = gravityTractor(
+        orbitalElements,
+        gtMass * 1e12,
+        gtDistance,
+        durationSec,
+        86400,
+        gtDirection
+      );
+      setGravityEvaluation(
+        evaluateMitigation(
+          closestApproachData.miss_distance.kilometers,
+          closestApproachData.miss_distance.kilometers + gravity.deltaVmag * 1000
+        )
+      );
+      applyNewElements(gravity.currentElements);
+    }}
+  >
+    Apply Gravity Tractor
+  </button>
+
+
+        {/* Score Bar */}
+{/* Score Bar */}
+{/* Score Bar */}
+        <div className="w-full mt-4 p-3 bg-gray-700 rounded">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-300">Score</span>
+            <span className="text-sm font-bold text-white">{gravityEvaluation?.score || 0} / 100</span>
+          </div>
+          
+          <div className="relative w-full h-8 bg-gray-600 rounded-full overflow-hidden border border-gray-500">
+            <div 
+              className="h-full bg-green-500 rounded-full"
+              style={{ width: `${gravityEvaluation?.score || 0}%` }}
+            />
+          </div>
+        </div>
 
         {/* Show Close-Up Button */}
         {/* <button

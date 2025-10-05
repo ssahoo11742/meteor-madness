@@ -299,12 +299,19 @@ const Home = () => {
               >
                 Live NEO Data
               </button>
+                            <button
+                onClick={() => navigate("/info")}
+                className="hover:text-blue-400 transition-colors"
+              >
+                Glossary
+              </button>
               <button
                 onClick={() => navigate("/3dinteractive")}
                 className="px-4 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
               >
                 3D View
               </button>
+
             </div>
 
             {/* Mobile Menu Button */}
